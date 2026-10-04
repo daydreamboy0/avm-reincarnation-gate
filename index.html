@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#080b0c" />
+    <title>AVM：轮回之门</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main class="game-shell">
+      <header class="topbar">
+        <div class="brand-lockup">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <div><p class="eyebrow">ANIMATION VS. MINECRAFT</p><h1>AVM：轮回之门</h1></div>
+        </div>
+        <div class="run-status" aria-live="polite">
+          <span class="status-dot"></span><span id="statusText">等待进入轮回</span>
+          <button id="resetGame" class="icon-button" type="button" title="重新开始" aria-label="重新开始">↻</button>
+        </div>
+      </header>
+
+      <section class="game-frame">
+        <canvas id="game" width="960" height="540" aria-label="AVM 轮回之门游戏画布"></canvas>
+        <div class="objective-strip">
+          <div><span class="objective-kicker">当前目标</span><strong id="objectiveText">进入试炼</strong></div>
+          <div class="progress-track" aria-hidden="true"><span id="objectiveProgress"></span></div>
+          <span id="progressText" class="progress-text">0 / 6</span>
+        </div>
+        <div class="hud hud-left">
+          <div class="hud-row"><span>生命</span><b><span id="healthValue">100</span> / <span id="maxHealthValue">100</span></b></div>
+          <div class="health-track"><div id="healthBar" class="health-fill"></div></div>
+          <div class="resource-row"><span><i class="soul-flame"></i>魂火 <b id="soulValue">0</b></span><span>击破 <b id="killValue">0</b></span></div>
+        </div>
+        <aside id="abilityDeck" class="ability-deck" aria-label="已获得能力卡牌">
+          <div class="deck-heading"><span>能力卡牌</span><small id="deckCount">0 / 10</small></div>
+          <div id="abilityCards" class="ability-cards"><span class="deck-empty">穿过轮回之门后选择能力</span></div>
+        </aside>
+        <div class="hud hud-right">
+          <div class="cycle-display"><span>轮回</span><b id="cycleValue">壹</b><small>/ ∞</small></div>
+          <div class="cooldowns">
+            <span id="skillY" class="skill ready"><b>Y</b><i>刀光</i><em id="skillYTimer"></em></span>
+            <span id="skillX" class="skill ready"><b>X</b><i>分身</i><em id="skillXTimer"></em></span>
+            <span id="skillL" class="skill ready"><b>L</b><i>激光</i><em id="skillLTimer"></em></span>
+          </div>
+        </div>
+        <div id="bossBar" class="boss-bar hidden"><span>守门者</span><div><i id="bossHealth"></i></div></div>
+
+        <div id="touchControls" class="touch-controls" aria-label="触屏控制">
+          <div id="joystick" class="joystick" aria-label="移动摇杆"><span id="joystickKnob" class="joystick-knob"></span></div>
+          <div class="touch-actions">
+            <button id="touchJump" class="touch-button jump-action" aria-label="跳跃"><span>↑</span><small>跳跃</small></button>
+            <button id="touchAttack" class="touch-button attack-action" aria-label="攻击"><span class="sword-icon"></span><small>攻击</small></button>
+            <button id="touchBlade" class="touch-button skill-action" aria-label="红色刀光"><b>Y</b><small>刀光</small><em id="touchBladeTimer"></em></button>
+            <button id="touchClone" class="touch-button skill-action" aria-label="召唤分身"><b>X</b><small>分身</small><em id="touchCloneTimer"></em></button>
+            <button id="touchLaser" class="touch-button skill-action" aria-label="激光"><b>L</b><small>激光</small><em id="touchLaserTimer"></em></button>
+          </div>
+        </div>
+
+        <div id="startScreen" class="overlay start-screen">
+          <div class="start-copy">
+            <p class="eyebrow">THE GATE REMEMBERS</p>
+            <h2>每一次倒下<br />都会留下力量</h2>
+            <p>击破不断变强的守门者，收集魂火，让力量在每次轮回中持续叠加。</p>
+            <button id="startGame" class="primary-button" type="button">进入无限轮回 <span>→</span></button>
+            <div class="start-controls"><span><b>A D</b> 移动</span><span><b>空格</b> 跳跃</span><span><b>鼠标</b> 攻击</span><span><b>Y X L</b> 技能</span></div>
+          </div>
+          <div class="gate-emblem" aria-hidden="true"><i></i><span>壹</span></div>
+        </div>
+
+        <div id="upgradeScreen" class="overlay choice-screen hidden">
+          <div class="choice-panel">
+            <p class="eyebrow">轮回馈赠</p><h2>选择要带走的力量</h2><p>门会重置战场，但会记住一次选择。</p>
+            <div id="upgradeChoices" class="upgrade-grid"></div>
+          </div>
+        </div>
+
+        <div id="gameOver" class="overlay result-screen hidden">
+          <div class="result-panel">
+            <p id="resultEyebrow" class="eyebrow">轮回中断</p><h2 id="gameOverTitle">你倒在了门前</h2>
+            <p id="gameOverCopy">门仍在那里，等待下一次尝试。</p><div id="runStats" class="run-stats"></div>
+            <button id="restart" class="primary-button" type="button">再次进入 <span>↻</span></button>
+          </div>
+        </div>
+        <div id="toast" class="toast hidden" aria-live="polite"></div>
+      </section>
+
+      <footer class="footer-bar">
+        <div class="legend"><span><b>Y</b> 绯红刀阵</span><span><b>X</b> 残影军团</span><span><b>L</b> 赤色激光</span></div>
+        <span class="hint">门亮起后，走入中央完成轮回</span>
+      </footer>
+    </main>
+    <script src="./game.js"></script>
+  </body>
+</html>
